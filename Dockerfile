@@ -64,6 +64,8 @@ ENV PNPM_STORE_DIR=/data/pnpm-store
 ENV PATH="/data/npm/bin:/data/pnpm:${PATH}"
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
