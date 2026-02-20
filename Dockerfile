@@ -62,12 +62,21 @@ ENV NPM_CONFIG_CACHE=/data/npm-cache
 ENV PNPM_HOME=/data/pnpm
 ENV PNPM_STORE_DIR=/data/pnpm-store
 ENV PATH="/data/npm/bin:/data/pnpm:${PATH}"
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
 
 WORKDIR /app
 
 # Wrapper deps
 COPY package.json ./
 RUN npm install --omit=dev && npm cache clean --force
+RUN npx playwright install --with-deps chromium
+RUN apt-get update && apt-get install -y python3 python3-pip \
+ && ln -s /usr/bin/python3 /usr/bin/python \
+ && pip3 install --no-cache-dir requests beautifulsoup4 lxml
+RUN mkdir -p /dev/shm
+
+RUN apt-get update && apt-get install -y fonts-liberation
 
 # Copy built openclaw
 COPY --from=openclaw-build /openclaw /openclaw
