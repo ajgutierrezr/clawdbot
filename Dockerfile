@@ -58,9 +58,11 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# python tools
-RUN ln -s /usr/bin/python3 /usr/bin/python \
- && pip3 install --no-cache-dir requests beautifulsoup4 lxml
+# Python runtime + scraping libraries
+RUN apt-get update && apt-get install -y python3 python3-pip \
+ && ln -sf /usr/bin/python3 /usr/bin/python \
+ && pip3 install --no-cache-dir --break-system-packages \
+    requests beautifulsoup4 lxml
 
 ENV CHROME_BIN=/usr/bin/chromium
 ENV DISPLAY=:99
