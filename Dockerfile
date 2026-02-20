@@ -71,6 +71,17 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --omit=dev && npm cache clean --force
 RUN npx playwright install --with-deps chromium
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    fonts-liberation \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    xdg-utils \
+    --no-install-recommends
 RUN apt-get update && apt-get install -y python3 python3-pip \
  && ln -s /usr/bin/python3 /usr/bin/python \
  && pip3 install --no-cache-dir requests beautifulsoup4 lxml
