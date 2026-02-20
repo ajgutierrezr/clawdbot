@@ -65,8 +65,9 @@ RUN apt-get update && apt-get install -y python3 python3-pip \
     requests beautifulsoup4 lxml
 
 ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMIUM_PATH=/usr/bin/chromium
 ENV DISPLAY=:99
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-setuid-sandbox --disable-gpu"
 
 WORKDIR /app
 
