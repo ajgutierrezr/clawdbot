@@ -1,18 +1,11 @@
-# Build openclaw from source to avoid npm packaging gaps (some dist files are not shipped).
+# ---------- BUILD OPENCLAW ----------
 FROM node:22-bookworm AS openclaw-build
 
-# Dependencies needed for openclaw build
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    git \
-    ca-certificates \
-    curl \
-    python3 \
-    make \
-    g++ \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    git curl ca-certificates python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Bun (openclaw build uses it)
+# bun required for build
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
 
@@ -20,13 +13,10 @@ RUN corepack enable
 
 WORKDIR /openclaw
 
-# Pin to a known-good ref (tag/branch). Override in Railway template settings if needed.
-# Using a released tag avoids build breakage when `main` temporarily references unpublished packages.
 ARG OPENCLAW_GIT_REF=v2026.2.9
 RUN git clone --depth 1 --branch "${OPENCLAW_GIT_REF}" https://github.com/openclaw/openclaw.git .
 
-# Patch: relax version requirements for packages that may reference unpublished versions.
-# Apply to all extension package.json files to handle workspace protocol (workspace:*).
+# relax version requirements
 RUN set -eux; \
   find ./extensions -name 'package.json' -type f | while read -r f; do \
     sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*">=[^"]+"/"openclaw": "*"/g' "$f"; \
@@ -35,77 +25,66 @@ RUN set -eux; \
 
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm build
-ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
 
-
-# Runtime image
+# ---------- RUNTIME IMAGE ----------
 FROM node:22-bookworm
+
 ENV NODE_ENV=production
 
-RUN apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ca-certificates \
+# install chromium + virtual display + deps
+RUN apt-get update && apt-get install -y \
+    chromium \
+    xvfb \
+    dbus-x11 \
+    x11-utils \
+    fonts-liberation \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libgtk-3-0 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libxshmfence1 \
+    libxfixes3 \
+    libxrender1 \
+    libxi6 \
+    libxtst6 \
+    python3 python3-pip python3-venv \
     tini \
-    python3 \
-    python3-venv \
-  && rm -rf /var/lib/apt/lists/*
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# `openclaw update` expects pnpm. Provide it in the runtime image.
-RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
+# python tools
+RUN ln -s /usr/bin/python3 /usr/bin/python \
+ && pip3 install --no-cache-dir requests beautifulsoup4 lxml
 
-# Persist user-installed tools by default by targeting the Railway volume.
-# - npm global installs -> /data/npm
-# - pnpm global installs -> /data/pnpm (binaries) + /data/pnpm-store (store)
-ENV NPM_CONFIG_PREFIX=/data/npm
-ENV NPM_CONFIG_CACHE=/data/npm-cache
-ENV PNPM_HOME=/data/pnpm
-ENV PNPM_STORE_DIR=/data/pnpm-store
-ENV PATH="/data/npm/bin:/data/pnpm:${PATH}"
-ENV PLAYWRIGHT_BROWSERS_PATH=0
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
 ENV CHROME_BIN=/usr/bin/chromium
-ENV CHROMIUM_PATH=/usr/bin/chromium
+ENV DISPLAY=:99
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage"
 
 WORKDIR /app
 
-# Wrapper deps
+# install node deps first (cache friendly)
 COPY package.json ./
 RUN npm install --omit=dev && npm cache clean --force
-RUN npx playwright install --with-deps chromium
-RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-driver \
-    fonts-liberation \
-    libatk-bridge2.0-0 \
-    libgtk-3-0 \
-    libnss3 \
-    libxss1 \
-    libasound2 \
-    xdg-utils \
-    --no-install-recommends
-RUN apt-get update && apt-get install -y python3 python3-pip \
- && ln -s /usr/bin/python3 /usr/bin/python \
- && pip3 install --no-cache-dir requests beautifulsoup4 lxml
-RUN mkdir -p /dev/shm
 
-RUN apt-get update && apt-get install -y fonts-liberation
-
-# Copy built openclaw
+# copy openclaw build
 COPY --from=openclaw-build /openclaw /openclaw
 
-# Provide an openclaw executable
+# create openclaw command
 RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
   && chmod +x /usr/local/bin/openclaw
 
+# copy app source
 COPY src ./src
+COPY start.sh ./start.sh
+RUN chmod +x start.sh
 
-# The wrapper listens on $PORT.
-# IMPORTANT: Do not set a default PORT here.
-# Railway injects PORT at runtime and routes traffic to that port.
-# If we force a different port, deployments can come up but the domain will route elsewhere.
 EXPOSE 8080
 
-# Ensure PID 1 reaps zombies and forwards signals.
 ENTRYPOINT ["tini", "--"]
-CMD ["node", "src/server.js"]
+CMD ["bash", "start.sh"]
