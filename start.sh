@@ -31,7 +31,9 @@ timeout 15s bash -c 'until curl -s http://127.0.0.1:18800/json/version; do sleep
 
 echo "Starting OpenClaw gateway..."
 export OPENCLAW_BROWSER_PROFILE=openclaw
-openclaw gateway &
+openclaw gateway --profile openclaw &
+echo "Waiting for OpenClaw Gateway (Port 18789)..."
+timeout 30s bash -c 'until curl -s http://127.0.0.1:18789/health > /dev/null 2>&1; do sleep 1; done'
 sleep 3
 
 echo "Starting app..."
