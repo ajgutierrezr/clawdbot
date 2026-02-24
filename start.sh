@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+pkill -9 Xvfb || true
+pkill -9 chromium || true
+rm -f /tmp/.X99-lock
+rm -f /tmp/.X11-unix/X99
+
 echo "Starting virtual display..."
 export DISPLAY=:99
 Xvfb :99 -screen 0 1280x1024x24 &
@@ -20,7 +25,7 @@ chromium \
   about:blank \
   > /dev/null 2>&1 &
 
-sleep 4
+timeout 15s bash -c 'until curl -s http://127.0.0.1:18800/json/version; do sleep 1; done'
 
 echo "Starting OpenClaw gateway..."
 export OPENCLAW_BROWSER_PROFILE=openclaw
