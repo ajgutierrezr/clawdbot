@@ -1,29 +1,30 @@
 #!/usr/bin/env bash
+set -e
 
 echo "Starting virtual display..."
+export DISPLAY=:99
 Xvfb :99 -screen 0 1280x1024x24 &
 sleep 2
-
-export DISPLAY=:99
-
-echo "Starting Xvfb..."
-Xvfb :99 -screen 0 1280x800x24 &
 
 echo "Starting Chromium..."
 chromium \
   --no-sandbox \
   --disable-dev-shm-usage \
+  --disable-setuid-sandbox \
   --disable-gpu \
   --disable-software-rasterizer \
-  --remote-debugging-port=9222 \
+  --disable-features=UseDBus \
+  --remote-debugging-port=18800 \
   --remote-debugging-address=127.0.0.1 \
   --user-data-dir=/tmp/chrome-profile \
+  about:blank \
   > /dev/null 2>&1 &
 
-sleep 3
+sleep 4
 
 echo "Starting OpenClaw gateway..."
-openclaw gateway > /dev/null 2>&1 &
+export OPENCLAW_BROWSER_PROFILE=openclaw
+openclaw gateway &
 
 sleep 3
 
