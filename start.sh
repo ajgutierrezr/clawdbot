@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-set -e
-
 pkill -9 Xvfb || true
 pkill -9 chromium || true
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix/*
+
+# 1. Check if Chromium actually exists in the path
+which chromium || echo "❌ CHROMIUM NOT FOUND IN PATH"
 
 echo "Starting virtual display..."
 export DISPLAY=:99
@@ -28,6 +29,10 @@ chromium \
   > /dev/null 2>&1 &
 
 timeout 15s bash -c 'until curl -s http://127.0.0.1:18800/json/version; do sleep 1; done'
+
+# 4. Check ports
+echo "Checking open ports..."
+netstat -tulpn || echo "netstat not installed"
 
 echo "Starting OpenClaw gateway..."
 export OPENCLAW_BROWSER_PROFILE=openclaw
