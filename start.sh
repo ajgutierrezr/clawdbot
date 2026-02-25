@@ -4,6 +4,8 @@ pkill -9 chromium || true
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix/*
 
+export OPENCLAW_GATEWAY_ENABLED=false
+
 # 1. Check if Chromium actually exists in the path
 which chromium || echo "❌ CHROMIUM NOT FOUND IN PATH"
 
