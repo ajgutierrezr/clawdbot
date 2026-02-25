@@ -32,10 +32,10 @@ timeout 15s bash -c 'until curl -s http://127.0.0.1:18800/json/version; do sleep
 
 # 4. Check ports
 echo "Checking open ports..."
-netstat -tulpn || echo "netstat not installed"
 
-echo "Starting OpenClaw gateway..."
 export OPENCLAW_BROWSER_PROFILE=openclaw
+export OPENCLAW_BROWSER_CDP_PORT=18800
+export OPENCLAW_GATEWAY_PORT=18789
 
 echo "Starting app..."
 exec node src/server.js
