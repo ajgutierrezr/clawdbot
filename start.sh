@@ -24,7 +24,7 @@ chromium \
   --disable-software-rasterizer \
   --disable-features=UseDBus \
   --remote-debugging-port=18800 \
-  --remote-debugging-address=0.0.0.0 \
+  --remote-debugging-address=127.0.0.1 \
   --user-data-dir=/tmp/chrome-profile \
   --remote-allow-origins=* \
   --headless=new \
@@ -38,7 +38,8 @@ echo "Checking open ports..."
 
 export OPENCLAW_BROWSER_PROFILE=openclaw
 export OPENCLAW_BROWSER_CDP_PORT=18800
-export OPENCLAW_GATEWAY_PORT=18789
+export OPENCLAW_GATEWAY_PORT=18790  # <--- Shift this by one
+export OPENCLAW_GATEWAY_ENABLED=true # <--- Let the wrapper start it!
 
 echo "Starting app..."
 exec node src/server.js
