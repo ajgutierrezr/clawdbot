@@ -3,6 +3,7 @@ pkill -9 Xvfb || true
 pkill -9 chromium || true
 rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix/*
+rm -f /data/.clawdbot/gateway.lock
 
 export OPENCLAW_GATEWAY_ENABLED=false
 
