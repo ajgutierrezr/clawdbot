@@ -38,7 +38,13 @@ echo "Checking open ports..."
 
 export OPENCLAW_BROWSER_PROFILE=openclaw
 export OPENCLAW_BROWSER_CDP_PORT=18800
-export OPENCLAW_GATEWAY_PORT=18790  # <--- Shift this by one
+export OPENCLAW_GATEWAY_PORT=18789  # <--- Shift this by one
+
+openclaw gateway --profile openclaw &
+
+echo "Waiting for Gateway health check..."
+timeout 45s bash -c 'until curl -s http://127.0.0.1:18789/health; do sleep 1; done'
+
 export OPENCLAW_GATEWAY_ENABLED=true # <--- Let the wrapper start it!
 
 echo "Starting app..."
