@@ -22,9 +22,10 @@ chromium \
   --disable-software-rasterizer \
   --disable-features=UseDBus \
   --remote-debugging-port=18800 \
-  --remote-debugging-address=127.0.0.1 \
+  --remote-debugging-address=0.0.0.0 \
   --user-data-dir=/tmp/chrome-profile \
   --remote-allow-origins=* \
+  --headless=new \
   about:blank \
   > /dev/null 2>&1 &
 
