@@ -44,7 +44,7 @@ export OPENCLAW_GATEWAY_PORT=18789  # <--- Shift this by one
 openclaw gateway --profile openclaw &
 
 echo "Waiting for Gateway health check..."
-timeout 45s bash -c 'until curl -s http://127.0.0.1:18789/health; do sleep 1; done'
+timeout 90s bash -c 'until curl -s http://127.0.0.1:18789/health; do sleep 1; done'
 
 export OPENCLAW_GATEWAY_ENABLED=true # <--- Let the wrapper start it!
 
