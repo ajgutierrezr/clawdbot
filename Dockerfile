@@ -5,10 +5,6 @@ RUN apt-get update && apt-get install -y \
     git curl ca-certificates python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# bun required for build
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:${PATH}"
-
 RUN corepack enable
 
 WORKDIR /openclaw
