@@ -5,9 +5,6 @@ rm -f /tmp/.X*-lock
 rm -rf /tmp/.X11-unix/*
 rm -f /data/.clawdbot/gateway.lock
 
-# Clean up potentially corrupted config from previous deploys
-rm -rf /data/.openclaw/config.json
-
 export OPENCLAW_GATEWAY_ENABLED=false
 
 # 1. Check if Chromium actually exists in the path
